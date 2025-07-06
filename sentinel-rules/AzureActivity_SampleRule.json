@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "displayName": "Test AzureActivity Sample Rule",
+    "enabled": true,
+    "query": "AzureActivity | take 10",
+    "suppressionDuration": "PT1H",
+    "suppressionEnabled": false,
+    "queryFrequency": "PT5M",
+    "queryPeriod": "PT5M",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0,
+    "severity": "Informational",
+    "tactics": [ "Execution" ]
+  }
+}
