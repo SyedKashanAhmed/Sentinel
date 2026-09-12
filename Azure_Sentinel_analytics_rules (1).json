@@ -1,0 +1,214 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/e5c29a23-08d6-472b-87c1-5be37290eb59')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/e5c29a23-08d6-472b-87c1-5be37290eb59')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "CLARA - When someone sign in",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\r\n| where ResultType == \"0\"\r\n| where LocationDetails contains \"GB\"\r\n| project Identity, AppDisplayName, IPAddress, UserPrincipalName, LocationDetails, UserDisplayName\r\n| where UserPrincipalName != \"testgarole@zojakashanoutlook.onmicrosoft.com\"",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "InitialAccess"
+                ],
+                "techniques": [
+                    "T1078"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/6c43f180-91dd-4e38-bc87-9617bab9ffa0')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/6c43f180-91dd-4e38-bc87-9617bab9ffa0')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "CLARA - When someone Create a user in Azure",
+                "description": "When someone Create a user in Azure",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Simple KQL rule to detect Azure user creation attempts\r\nAuditLogs\r\n| where TimeGenerated >= ago(24h)\r\n| where OperationName == \"Add user\"\r\n| where Result == \"success\" or Result == \"failure\"\r\n| project TimeGenerated, OperationName, Result, InitiatedBy, TargetResources, CorrelationId\r\n| sort by TimeGenerated desc",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Persistence"
+                ],
+                "techniques": [
+                    "T1136"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatedBy"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/2acc5dd0-e3e8-4b9e-b08e-c81953c9441f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/2acc5dd0-e3e8-4b9e-b08e-c81953c9441f')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "CLARA - Mass Cloud resource deletions Time Series Anomaly",
+                "description": "This query generates the baseline pattern of cloud resource deletions by an individual and generates an anomaly when any unusual spike is detected. These anomalies from unusual or privileged users could be an indication of a cloud infrastructure takedown by an adversary.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let starttime = 14d;\nlet endtime = 1d;\nlet timeframe = 1d;\nlet TotalEventsThreshold = 25;\nlet TimeSeriesData = AzureActivity \n| where TimeGenerated between (startofday(ago(starttime))..startofday(now())) \n| where OperationNameValue endswith \"delete\" \n| project TimeGenerated, Caller \n| make-series Total = count() on TimeGenerated from startofday(ago(starttime)) to startofday(now()) step timeframe by Caller;\nTimeSeriesData \n| extend (anomalies, score, baseline) = series_decompose_anomalies(Total, 3, -1, 'linefit') \n| mv-expand Total to typeof(double), TimeGenerated to typeof(datetime), anomalies to typeof(double), score to typeof(double), baseline to typeof(long) \n| where TimeGenerated >= startofday(ago(endtime)) \n| where anomalies > 0 \n| project Caller, TimeGenerated, Total, baseline, anomalies, score \n| where Total > TotalEventsThreshold and baseline > 0 \n| join (AzureActivity \n| where TimeGenerated > startofday(ago(endtime)) \n| where OperationNameValue endswith \"delete\" \n| summarize count(), make_set(OperationNameValue,100), make_set(_ResourceId,100) by bin(TimeGenerated, timeframe), Caller ) on TimeGenerated, Caller \n| extend Name = iif(Caller has '@',tostring(split(Caller,'@',0)[0]),\"\")\n| extend UPNSuffix = iif(Caller has '@',tostring(split(Caller,'@',1)[0]),\"\")\n| extend AadUserId = iif(Caller !has '@',Caller,\"\")\n",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Impact"
+                ],
+                "techniques": [
+                    "T1485"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": "ed43bdb7-eaab-4ea4-be52-6951fcfa7e3b",
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "Caller"
+                            },
+                            {
+                                "identifier": "Name",
+                                "columnName": "Name"
+                            },
+                            {
+                                "identifier": "UPNSuffix",
+                                "columnName": "UPNSuffix"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "AadUserId",
+                                "columnName": "AadUserId"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": "2.0.4"
+            }
+        }
+    ]
+}
