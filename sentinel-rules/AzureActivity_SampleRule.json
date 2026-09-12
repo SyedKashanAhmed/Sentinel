@@ -1,6 +1,6 @@
 {
   "properties": {
-    "displayName": "Test AzureActivity Sample Rule",
+    "displayName": "Test AzureActivity Sample Rule 2026",
     "enabled": true,
     "query": "AzureActivity | take 10",
     "suppressionDuration": "PT1H",
